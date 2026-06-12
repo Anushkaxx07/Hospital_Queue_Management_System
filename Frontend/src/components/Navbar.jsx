@@ -34,7 +34,7 @@ const Navbar = () => {
         <div className='logo'>
             <img src="./images/logo.png" alt="logo" style={{borderRadius:'999rem',height:150,width:150}}/>
         </div>
-        <div className={show?"navLinks showmenu":"navLinks"}>
+        <div className={`navLinks ${show ? "showmenu" : ""}`}>
             <div className="links">
                 <Link to={"/"}>HOME</Link>
                 <Link to={"/appointment"}>APPOINTMENT</Link>

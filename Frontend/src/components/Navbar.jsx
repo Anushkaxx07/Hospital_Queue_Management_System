@@ -10,7 +10,7 @@ const Navbar = () => {
     const{isAuthenticated,setIsAuthenticated}=useContext(Context);
     const navigateTo=useNavigate()
     const handlerLogout=async()=>{
-            await axios.get("http://localhost:4000/api/v1/user/patient/logout",
+            await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/user/patient/logout`,
                 {withCredentials:true,
 
                 })

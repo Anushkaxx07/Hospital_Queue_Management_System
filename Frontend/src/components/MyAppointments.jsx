@@ -12,7 +12,7 @@ function MyAppointments() {
   useEffect(() => {
     const fetchMyAppointments = async () => {
       try {
-        const { data } = await axios.get("http://localhost:4000/api/v1/appointment/my", {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/appointment/my`, {
           withCredentials: true,
         });
         console.log("Appointments from backend:", data.appointments);
@@ -28,7 +28,7 @@ function MyAppointments() {
   const updateAppointmentStatus = async (appointmentId) => {
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/v1/appointment/update/${appointmentId}`,
+        `${import.meta.env.VITE_API_URL}/api/v1/appointment/update/${appointmentId}`,
         { status: "Accepted" },
         { withCredentials: true }
       );
@@ -167,7 +167,7 @@ function MyAppointments() {
       marginTop: '2rem',
     }}
   >
-    Your slot would probably be around ⏰ Time: {slotTime.toLocaleTimeString()}
+    Your slot would probably be around Time: {slotTime.toLocaleTimeString()}
   </p>
 )}
 

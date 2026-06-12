@@ -30,7 +30,7 @@ const MessageForm = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:4000/api/v1/message/send",
+        `${import.meta.env.VITE_API_URL}/api/v1/message/send`,
         formData,
         {
           withCredentials: true,

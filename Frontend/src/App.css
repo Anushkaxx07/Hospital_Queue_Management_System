@@ -483,18 +483,20 @@ nav {
   z-index: 2;
 }
 nav .logo {
+  flex: 0 0 auto;
+}
+
+nav .navLinks {
   flex: 1;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  font-size: 2rem;
-}
-nav .navLinks {
-  flex: 2;
+   gap: 40px;
 }
 
 nav .navLinks .links {
   display: flex;
-  gap: 25px;
+  gap: 30px;
 }
 nav .navLinks .links a {
   text-decoration: none;

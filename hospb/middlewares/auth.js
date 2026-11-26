@@ -3,56 +3,96 @@ import ErrorHandler from "./errorMiddleware.js";
 import jwt from "jsonwebtoken";
 import { User } from "../models/userSchema.js";
 
-export const isAdminAuthenticated=catchAsyncErrors(async(req,res,next)=>{
-    const token=req.cookies.adminToken;
-    if(!token){
-        return next(
-            new ErrorHandler("Dashboard user is not Authenticated",400));
-    }
-    const decoded=jwt.verify(token,process.env.JWT_SECRET_KEY);
-    req.user=await User.findById(decoded.id);
-    if(req.user.role !== "Admin"){
-        return next(
-            new ErrorHandler(`${req.user.role} not authorized for this resources!`,403
+const getTokenFromReq = (req, cookieName) => {
+  if (req.cookies && req.cookies[cookieName]) {
+    return req.cookies[cookieName];
+  }
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    return req.headers.authorization.split(" ")[1];
+  }
+  return null;
+};
 
-        )
-    );
-    }
-    next();
-
-});
-export const isPatientAuthenticated=catchAsyncErrors(async(req,res,next)=>{
-    const token=req.cookies.patientToken;
-    console.log("Token from cookie:", token);
-    if(!token){
-        return next(new ErrorHandler("Patient is not Authenticated!",400));
-    }
-    const decoded=jwt.verify(token,process.env.JWT_SECRET_KEY);
-    console.log("Decoded token:", decoded);
-    req.user=await User.findById(decoded.id);
-    console.log("User from DB:", req.user);
-    if(req.user.role!=="Patient"){
-        return next(
-            new ErrorHandler(`${req.user.role} not authorized for this resources!`,403
-
-        )
-    );
+export const isAdminAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  const token = getTokenFromReq(req, "adminToken");
+  if (!token) {
+    return next(new ErrorHandler("Admin is not authenticated! Please login.", 401));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.user = await User.findById(decoded.id);
+    if (!req.user || req.user.role !== "Admin") {
+      return next(new ErrorHandler("Unauthorized: Admin access required!", 403));
     }
     next();
-
+  } catch (err) {
+    return next(new ErrorHandler("Invalid or expired session token!", 401));
+  }
 });
 
-export const isAuthorized=(...roles)=>{
-    return(req,res,next)=>{
-        if(!roles.includes(req.user.role)){
-            return next(
-                new ErrorHandler(
-                    `${req.user.role} not allowed to access this resource!`
-                )
-            );
+export const isDoctorAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  const token = getTokenFromReq(req, "doctorToken") || getTokenFromReq(req, "adminToken");
+  if (!token) {
+    return next(new ErrorHandler("Doctor is not authenticated! Please login.", 401));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.user = await User.findById(decoded.id);
+    if (!req.user || !["Doctor", "Admin"].includes(req.user.role)) {
+      return next(new ErrorHandler("Unauthorized: Doctor access required!", 403));
+    }
+    next();
+  } catch (err) {
+    return next(new ErrorHandler("Invalid or expired session token!", 401));
+  }
+});
 
-          
-        }
-        next();
-    };
-}
+export const isStaffAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  const token =
+    getTokenFromReq(req, "adminToken") ||
+    getTokenFromReq(req, "doctorToken");
+  if (!token) {
+    return next(new ErrorHandler("Staff session required! Please login.", 401));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.user = await User.findById(decoded.id);
+    if (!req.user || !["Admin", "Doctor"].includes(req.user.role)) {
+      return next(new ErrorHandler("Staff privileges required!", 403));
+    }
+    next();
+  } catch (err) {
+    return next(new ErrorHandler("Invalid or expired session token!", 401));
+  }
+});
+
+export const isPatientAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  const token = getTokenFromReq(req, "patientToken");
+  if (!token) {
+    return next(new ErrorHandler("Patient is not authenticated! Please sign in.", 401));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.user = await User.findById(decoded.id);
+    if (!req.user || req.user.role !== "Patient") {
+      return next(new ErrorHandler("Access restricted to Patient accounts!", 403));
+    }
+    next();
+  } catch (err) {
+    return next(new ErrorHandler("Invalid or expired session token!", 401));
+  }
+});
+
+export const isAuthorized = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(
+        new ErrorHandler(
+          `${req.user?.role || "User"} is not authorized to access this resource!`,
+          403
+        )
+      );
+    }
+    next();
+  };
+};

@@ -210,13 +210,24 @@ export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+const getClearCookieOptions = () => {
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    process.env.RENDER === "true" ||
+    Boolean(process.env.RENDER);
+
+  return {
+    httpOnly: true,
+    expires: new Date(0),
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
+  };
+};
+
 export const logoutAdmin = catchAsyncErrors(async (req, res, next) => {
   res
     .status(200)
-    .cookie("adminToken", "", {
-      httpOnly: true,
-      expires: new Date(0),
-    })
+    .cookie("adminToken", "", getClearCookieOptions())
     .json({
       success: true,
       message: "Admin logged out successfully!",
@@ -226,10 +237,7 @@ export const logoutAdmin = catchAsyncErrors(async (req, res, next) => {
 export const logoutDoctor = catchAsyncErrors(async (req, res, next) => {
   res
     .status(200)
-    .cookie("doctorToken", "", {
-      httpOnly: true,
-      expires: new Date(0),
-    })
+    .cookie("doctorToken", "", getClearCookieOptions())
     .json({
       success: true,
       message: "Doctor logged out successfully!",
@@ -239,10 +247,7 @@ export const logoutDoctor = catchAsyncErrors(async (req, res, next) => {
 export const logoutPatient = catchAsyncErrors(async (req, res, next) => {
   res
     .status(200)
-    .cookie("patientToken", "", {
-      httpOnly: true,
-      expires: new Date(0),
-    })
+    .cookie("patientToken", "", getClearCookieOptions())
     .json({
       success: true,
       message: "Patient logged out successfully!",

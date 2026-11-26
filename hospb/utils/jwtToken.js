@@ -16,13 +16,18 @@ export const generateToken = (user, message, statusCode, res) => {
 
   const expireDays = Number(process.env.COOKIE_EXPIRE) || 7;
 
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    process.env.RENDER === "true" ||
+    Boolean(process.env.RENDER);
+
   res
     .status(statusCode)
     .cookie(cookieName, token, {
       expires: new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000),
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
     })
     .json({
       success: true,
